@@ -18,7 +18,7 @@ JsonObject& JSONencoder = JSONbuffer.createObject();
 
 WebSocketsClient client;
 // MQTTPubSubClient mqtt;
-MQTTPubSub::PubSubClient<21000> mqtt;
+MQTTPubSub::PubSubClient<30000> mqtt;
 
 void init_wifi(){
     WiFi.begin(ssid, pass);
@@ -102,8 +102,9 @@ void send_picture(){
     if(capture_image()){
         String encodedImage = base64::encode(tempImage, tempLen);
         JSONencoder["data"] = encodedImage.c_str();
-        char JSONmessageBuffer[15000];
-        JSONencoder.printTo(JSONmessageBuffer, sizeof(JSONmessageBuffer));
+        char JSONmessageBuffer[20000];
+        Serial.println(JSONencoder.measurePrettyLength());
+        JSONencoder.printTo(JSONmessageBuffer, JSONencoder.measurePrettyLength()+1);
         // String image = String(JSONmessageBuffer);
         publish_mqtt(String(JSONmessageBuffer));
         return;
@@ -175,19 +176,25 @@ void loop() {
         delay(1000);
     }
     if(loop1 == 0){
+        loop1 ++;
+        for(int i = 0; i < 3; i ++){
+            capture_image();
+        }
         JSONencoder["id"] = "03753249";
         JSONencoder["data"] = "AdvTopic Xiaoyang Chen/03753249 Start Sending";
-        char JSONmessageBuffer[80];
-        JSONencoder.printTo(JSONmessageBuffer, sizeof(JSONmessageBuffer));
-        loop1 ++;
-        mqtt.publish("ADVTOPIC", JSONmessageBuffer);
+        char TempBuffer[80];
+        JSONencoder["data"].printTo(TempBuffer, (JSONencoder["data"].measureLength()+1));
+        String message = "{\"id\": \"03753249\", \"data\": " + String(TempBuffer) + "}";
+        mqtt.publish("ADVTOPIC", message);
+        // mqtt.publish("ADVTOPIC", JSONmessageBuffer);
     }else if (loop1 == 11){
         static uint32_t prev_ms = millis();
         if (millis() > prev_ms + 3000) {
             JSONencoder["data"] = "AdvTopic Xiaoyang Chen/03753249 End of Sending";
-            char JSONmessageBuffer[80];
-            JSONencoder.printTo(JSONmessageBuffer, sizeof(JSONmessageBuffer));
-            mqtt.publish("ADVTOPIC", JSONmessageBuffer);
+            char TempBuffer[80];
+            JSONencoder["data"].printTo(TempBuffer, (JSONencoder["data"].measureLength()+1));
+            String message = "{\"id\": \"03753249\", \"data\": " + String(TempBuffer) + "}";
+            mqtt.publish("ADVTOPIC", message);
             mqtt.disconnect();
         }
     }
