@@ -175,12 +175,14 @@ void loop() {
         delay(1000);
     }
     if(loop1 == 0){
+        loop1 ++;
         JSONencoder["id"] = "03753249";
         JSONencoder["data"] = "AdvTopic Xiaoyang Chen/03753249 Start Sending";
-        char JSONmessageBuffer[80];
-        JSONencoder.printTo(JSONmessageBuffer, sizeof(JSONmessageBuffer));
-        loop1 ++;
-        mqtt.publish("ADVTOPIC", JSONmessageBuffer);
+        char TempBuffer[80];
+        JSONencoder["data"].printTo(TempBuffer, (JSONencoder["data"].measureLength()+1));
+        String message = "{\"id\": \"03753249\", \"data\": " + String(TempBuffer) + "}";
+        mqtt.publish("ADVTOPIC", message);
+        // mqtt.publish("ADVTOPIC", JSONmessageBuffer);
     }else if (loop1 == 11){
         static uint32_t prev_ms = millis();
         if (millis() > prev_ms + 3000) {
