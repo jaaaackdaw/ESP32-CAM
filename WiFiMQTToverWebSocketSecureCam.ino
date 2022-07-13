@@ -102,11 +102,14 @@ void send_picture(){
     if(capture_image()){
         String encodedImage = base64::encode(tempImage, tempLen);
         JSONencoder["data"] = encodedImage.c_str();
-        char JSONmessageBuffer[20000];
-        Serial.println(JSONencoder.measurePrettyLength());
-        JSONencoder.printTo(JSONmessageBuffer, JSONencoder.measurePrettyLength()+1);
-        // String image = String(JSONmessageBuffer);
-        publish_mqtt(String(JSONmessageBuffer));
+        // char JSONmessageBuffer[20000];
+        // Serial.println(JSONencoder.measurePrettyLength());
+        // JSONencoder.printTo(JSONmessageBuffer, JSONencoder.measurePrettyLength()+1);
+        // publish_mqtt(String(JSONmessageBuffer));
+        char TempBuffer[15000];
+        JSONencoder["data"].printTo(TempBuffer, (JSONencoder["data"].measureLength()+1));
+        String message = "{\"id\": \"03753249\", \"data\": " + String(TempBuffer) + "}";
+        mqtt.publish("ADVTOPIC", message);
         return;
     }
 }
@@ -190,12 +193,13 @@ void loop() {
     }else if (loop1 == 11){
         static uint32_t prev_ms = millis();
         if (millis() > prev_ms + 3000) {
+            loop1++;
             JSONencoder["data"] = "AdvTopic Xiaoyang Chen/03753249 End of Sending";
             char TempBuffer[80];
             JSONencoder["data"].printTo(TempBuffer, (JSONencoder["data"].measureLength()+1));
             String message = "{\"id\": \"03753249\", \"data\": " + String(TempBuffer) + "}";
             mqtt.publish("ADVTOPIC", message);
-            mqtt.disconnect();
+            // mqtt.disconnect();
         }
     }
     else if((loop1 > 0) && (loop1 < 11)){
